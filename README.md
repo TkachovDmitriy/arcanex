@@ -104,8 +104,9 @@ See [ADR-002](docs/adr/ADR-002-single-host-no-k8s-deploy.md).
 ```
 arcanex/
 ├── app/                     # the trivial service being secured
-│   ├── src/server.js        # zero-dependency Node HTTP server
-│   ├── package.json
+│   ├── src/server.ts        # TypeScript HTTP server (zero *runtime* deps)
+│   ├── tsconfig.json        # compiled to dist/ in the image build stage
+│   ├── package.json         # TypeScript is a devDependency only
 │   └── Dockerfile           # multi-stage → distroless, non-root
 ├── policy/                  # OPA/Rego policies enforced by conftest
 ├── deploy/compose/          # single-host hardened docker-compose
@@ -116,10 +117,13 @@ arcanex/
 
 ## Running locally
 
-The app is intentionally dependency-free, so it runs anywhere:
+The app has **zero runtime dependencies** (TypeScript is a build-time devDependency):
 
 ```sh
-node app/src/server.js      # → http://localhost:8080
+cd app
+npm ci          # installs the TS toolchain (dev only)
+npm run build   # tsc → dist/
+npm start       # node dist/server.js → http://localhost:8080
 ```
 
 The full chain (SBOM, scan, sign) runs in CI; no local security tooling needed.

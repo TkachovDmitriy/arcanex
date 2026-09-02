@@ -17,6 +17,14 @@ insecure scenario is *introduced deliberately* in the demo (see PLAN §4): a PR 
 dependency with a known CVE (e.g. `lodash@4.17.19`) or hardcodes a secret, and the gate
 blocks it.
 
+## Note on TypeScript
+
+The app is written in TypeScript for readability and rigor, but TypeScript and
+`@types/node` are **devDependencies** compiled away in the image build stage. The runtime
+distroless image contains only the emitted `dist/*.js` — no `node_modules`, no compiler.
+"Zero runtime dependencies" therefore still holds; the SBOM of the shipped image lists no
+application packages.
+
 ## Consequences
 
 - The baseline is offline-buildable and stays green independent of upstream CVE churn.
