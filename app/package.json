@@ -1,0 +1,15 @@
+{
+  "name": "arcanex-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intentionally trivial, zero-dependency service secured by the arcanex supply-chain pipeline",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  }
+}
