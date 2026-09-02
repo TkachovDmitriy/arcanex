@@ -107,7 +107,7 @@ arcanex/
 │   ├── src/server.ts        # TypeScript HTTP server (zero *runtime* deps)
 │   ├── tsconfig.json        # compiled to dist/ in the image build stage
 │   ├── package.json         # TypeScript is a devDependency only
-│   └── Dockerfile           # multi-stage → distroless, non-root
+│   └── Dockerfile           # multi-stage → Chainguard/wolfi, non-root, 0-CVE
 ├── policy/                  # OPA/Rego policies enforced by conftest
 ├── deploy/compose/          # single-host hardened docker-compose
 ├── docs/adr/                # architecture decision records

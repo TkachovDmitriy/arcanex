@@ -22,10 +22,11 @@ COPY src ./src
 RUN npm run build
 
 # ---- runtime stage -----------------------------------------------------------
-# Distroless: no shell, no package manager, no busybox. Only the Node runtime
-# and its libc. Tiny attack surface and far fewer CVEs to triage. `:nonroot`
-# runs as UID 65532, never root. (Digest-pin this in a later phase.)
-FROM gcr.io/distroless/nodejs22-debian12:nonroot AS runtime
+# Chainguard (wolfi) node image: distroless-style (no shell, no package manager)
+# but continuously rebuilt, so the OS packages stay patched — typically 0 known
+# CVEs, unlike Google distroless whose openssl lagged behind Debian's fix.
+# Pinned by digest for reproducible builds (Renovate bumps the digest — ADR-005).
+FROM cgr.dev/chainguard/node:latest@sha256:105c8e7e503ea8f45553b9cc5aa0d24e80499bcc7c860dff54449e7c01d9be79 AS runtime
 
 WORKDIR /app
 
@@ -33,12 +34,12 @@ WORKDIR /app
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/dist ./dist
 
-# The distroless :nonroot tag already runs as UID 65532, but declare it
-# explicitly: it documents intent and satisfies scanners (trivy AVD-DS-0002).
+# Chainguard already runs as the nonroot UID 65532; declare it explicitly to
+# document intent and satisfy scanners (trivy AVD-DS-0002).
 USER 65532:65532
 
 ENV NODE_ENV=production
 EXPOSE 8080
 
-# Distroless nodejs image's entrypoint is already `node`, so we pass the script.
+# The image entrypoint is /usr/bin/node, so CMD is just the script to run.
 CMD ["dist/server.js"]
