@@ -43,6 +43,10 @@ jobs:
           format: sarif
           output: trivy-config.sarif
           severity: HIGH,CRITICAL
+          # Without this, SARIF mode reports ALL severities and exit-code fires on
+          # any finding (even LOW). true = apply the severity filter to the scan,
+          # so only HIGH/CRITICAL both appear in SARIF and fail the job.
+          limit-severities-for-sarif: true
           exit-code: '1'   # fail the job if a HIGH/CRITICAL misconfig is found
 
       - name: upload SARIF
@@ -93,6 +97,7 @@ jobs:
           output: trivy-image.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true   # only fail when a fix actually exists (matches PLAN)
+          limit-severities-for-sarif: true   # gate on HIGH/CRITICAL only (see iac-scan)
           exit-code: '1'
 
       - name: upload SARIF
