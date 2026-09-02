@@ -1,0 +1,106 @@
+name: supply-chain
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege by default: jobs get read-only unless they opt into more.
+permissions:
+  contents: read
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history — gitleaks needs every commit, not a shallow clone
+
+      - name: gitleaks
+        env:
+          GITLEAKS_VERSION: 8.21.2
+        run: |
+          curl -sSfL \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          # detect = scan the whole git history; --redact hides the secret value in logs
+          ./gitleaks detect --source . --redact --verbose
+
+  iac-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # needed to upload SARIF to the Security tab
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: trivy config (Dockerfile + compose misconfig scan)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy-config.sarif
+          severity: HIGH,CRITICAL
+          exit-code: '1'   # fail the job if a HIGH/CRITICAL misconfig is found
+
+      - name: upload SARIF
+        if: always()   # upload findings even when the scan step failed the job
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-config.sarif
+          category: trivy-config
+
+  build-scan:
+    needs: [secret-scan, iac-scan]   # gate: only build once history + IaC are clean
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build image (load locally, do NOT push yet)
+        run: docker build -t arcanex:${{ github.sha }} ./app
+
+      - name: install syft
+        env:
+          SYFT_VERSION: 1.18.1
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh \
+            | sh -s -- -b /usr/local/bin "v${SYFT_VERSION}"
+
+      # One pass, two industry-standard formats (see ADR-003 / SBOM decision).
+      - name: syft SBOM (SPDX + CycloneDX)
+        run: |
+          syft "arcanex:${{ github.sha }}" \
+            -o spdx-json=sbom.spdx.json \
+            -o cyclonedx-json=sbom.cyclonedx.json
+
+      - name: upload SBOMs as build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.*.json
+
+      - name: trivy image (CVE scan — fail on fixable HIGH/CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: arcanex:${{ github.sha }}
+          format: sarif
+          output: trivy-image.sarif
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true   # only fail when a fix actually exists (matches PLAN)
+          exit-code: '1'
+
+      - name: upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-image
+
+      # Phase 3 (policy-as-code / conftest) and Phase 4 (cosign sign + attest,
+      # main-only) hang off the end of this job — added in later steps.
