@@ -3,3 +3,4 @@ node_modules/
 sbom.*.json
 *.sarif
 .DS_Store
+dist/
