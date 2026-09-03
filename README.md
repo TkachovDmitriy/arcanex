@@ -12,7 +12,8 @@ It is the security counterpart to [`vortex`](../vortex) (the platform/k8s projec
 same rigor, opposite focus — **software supply chain, deliberately without Kubernetes**,
 deployed to a single hardened host.
 
-> **Status:** 🚧 Scaffolding — v0 pipeline in place. See the [roadmap](#-roadmap).
+> **Status:** 🟢 Gate live — secret/IaC/vuln scanning + SBOM enforced on every push/PR.
+> Next: policy-as-code, then signing. See the [roadmap](#-roadmap).
 
 ---
 
@@ -88,8 +89,8 @@ See [ADR-002](docs/adr/ADR-002-single-host-no-k8s-deploy.md).
 
 ## Roadmap
 
-- [x] **Phase 0 — Scaffold:** repo, trivial app, Dockerfile (distroless, non-root), ADRs
-- [ ] **Phase 1 — Gate:** gitleaks + trivy config + trivy image + SBOM, SARIF to GitHub Security
+- [x] **Phase 0 — Scaffold:** repo, trivial TS app, Dockerfile (Chainguard/wolfi, non-root), ADRs
+- [x] **Phase 1 — Gate:** gitleaks + trivy config + trivy image + SBOM, SARIF to GitHub Security
 - [ ] **Phase 2 — Policy-as-code:** conftest/OPA policies on the SBOM (banned pkgs, licenses)
 - [ ] **Phase 3 — Provenance:** keyless cosign sign + SBOM/provenance attestation → GHCR
 - [ ] **Phase 4 — Deploy:** single hardened host, `cosign verify` before `docker compose up`

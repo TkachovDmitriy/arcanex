@@ -60,12 +60,12 @@ Document with screenshots in `docs/` (Phase 5).
 
 ## 5. Roadmap (build in this order)
 
-- [x] **Phase 0 — Scaffold:** repo, README, this plan, dirs, ADR stubs
-- [ ] **Phase 1 — App + image:** `app/src/server.js` (zero-dep Node HTTP), `package.json`,
-  hand-written zero-dep `package-lock.json`, multi-stage `Dockerfile` → distroless nonroot.
-  Verify `node app/src/server.js` runs and `docker build` succeeds.
-- [ ] **Phase 2 — Gate jobs:** secret-scan + iac-scan + build + SBOM + trivy image, SARIF
-  uploads. Get a green run on a throwaway push.
+- [x] **Phase 0 — Scaffold:** repo, README, this plan, dirs, ADR-001..005
+- [x] **Phase 1 — App + image:** TypeScript service (`app/src/server.ts`, zero *runtime*
+  deps — TS is dev-only), multi-stage `Dockerfile` → **Chainguard/wolfi** nonroot (0-CVE,
+  ADR-005). `npm run build` + `docker build` verified.
+- [x] **Phase 2 — Gate jobs:** secret-scan (gitleaks) + iac-scan (trivy config) +
+  build-scan (SBOM SPDX+CycloneDX via syft, trivy image), SARIF uploads. Green run on `main`.
 - [ ] **Phase 3 — Policy-as-code:** `policy/image.rego` (deny malicious pkgs like
   `event-stream`/`flatmap-stream`; warn on GPL/AGPL) + `conftest test` step.
 - [ ] **Phase 4 — Sign + attest:** GHCR push, keyless `cosign sign`, `cosign attest`
