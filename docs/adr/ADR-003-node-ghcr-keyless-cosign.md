@@ -5,15 +5,15 @@
 
 ## Context
 
-The demo needs a language whose dependency manifests scanners understand well, a free
+The project needs a language whose dependency manifests scanners understand well, a free
 registry with no cloud account, and a signing scheme with no long-lived key material to
 manage or leak.
 
 ## Decision
 
 - **Node + npm.** `package-lock.json` (lockfileVersion 3) is a first-class citizen for
-  `syft` (SBOM) and `trivy` (CVEs); the ecosystem also makes the "add a vulnerable
-  dependency" demo realistic.
+  `syft` (SBOM) and `trivy` (CVEs); the ecosystem also makes a realistic
+  "known-CVE dependency" regression easy to exercise against the gate.
 - **GHCR (`ghcr.io`).** Free, integrated with GitHub OIDC, no ECR/cloud account
   (`vortex` already covers ECR).
 - **Keyless cosign.** Signing uses a short-lived certificate from Sigstore Fulcio, issued

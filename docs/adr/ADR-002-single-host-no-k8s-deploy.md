@@ -21,6 +21,6 @@ in `deploy/compose/docker-compose.yml` (`read_only`, `cap_drop: [ALL]`,
 
 - Focus stays on the chain of custody, not orchestration.
 - Clear contrast with `vortex` instead of overlap.
-- No cluster to run or pay for; the whole story is demoable in ~3 minutes.
+- No cluster to run or pay for; the full commit-to-deploy path is fast to reason about.
 - If k8s admission-time verification is ever wanted, it is a documented stretch goal
   (sigstore `policy-controller`), not part of the core.

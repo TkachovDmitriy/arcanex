@@ -5,9 +5,9 @@
 
 ## Context
 
-arcanex is a DevSecOps portfolio piece. A realistic business application would draw
-attention to feature logic and away from the thing being demonstrated: the chain of
-custody that proves an artifact is safe from commit to running container.
+arcanex exists to enforce a secure software supply chain. A feature-rich business
+application would draw attention to feature logic and away from what matters here: the
+chain of custody that proves an artifact is safe from commit to running container.
 
 ## Decision
 
@@ -17,7 +17,7 @@ sign → attest → deploy.
 
 ## Consequences
 
-- Reviewers evaluate the supply-chain guarantees, not app features.
+- The supply-chain guarantees are the focus of this repository, not app features.
 - The app can stay dependency-free (see [ADR-004](ADR-004-zero-runtime-dependencies.md)),
   keeping a green offline baseline.
 - Any "real" behaviour must be justified against this scope or rejected.
