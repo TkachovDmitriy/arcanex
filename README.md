@@ -3,14 +3,16 @@
 > A **secure software supply chain** in one repo — where the *pipeline that proves the
 > artifact is safe* is the product, not the app it ships.
 
-`arcanex` demonstrates **DevSecOps ownership**: every commit is scanned, every image gets an
-**SBOM**, is **vulnerability-scanned**, checked against **policy-as-code**, then **signed**
-and **attested** before it is allowed to ship. A malicious dependency or a leaked secret
-is **blocked at the gate**, not discovered in production.
+Every commit is scanned, every image gets an **SBOM**, is **vulnerability-scanned**, checked
+against **policy-as-code**, then **signed** and **attested** before it is allowed to ship. A
+malicious dependency or a leaked secret is **blocked at the gate**, not discovered in
+production.
 
-It is the security counterpart to [`vortex`](../vortex) (the platform/k8s project):
-same rigor, opposite focus — **software supply chain, deliberately without Kubernetes**,
-deployed to a single hardened host.
+The application is deliberately minimal — the enforced **chain of custody from commit to
+running container** is the substance. It ships to a single hardened host via `docker
+compose`; the supply-chain guarantees are identical on any runtime, so Kubernetes is
+intentionally out of scope (its platform concerns live in the sibling [`vortex`](../vortex)
+project).
 
 > **Status:** 🟢 Gate live — secret/IaC/vuln scanning + SBOM enforced on every push/PR.
 > Next: policy-as-code, then signing. See the [roadmap](#-roadmap).
@@ -65,14 +67,15 @@ deployed to a single hardened host.
 No long-lived keys: signing uses **keyless cosign** via GitHub OIDC → Sigstore.
 No cloud account required: images live in **GHCR**.
 
-## The 3-minute interview demo
+## Failure modes the gate blocks
 
-1. **Baseline** — `main` pipeline is green; image is signed, SBOM attested.
-2. **Attack** — open a PR that either
-   - adds a dependency with a known CVE, **or**
-   - hardcodes an API key in the source.
-3. **Gate holds** — the PR pipeline goes **red**: `trivy` flags the CVE / `gitleaks`
-   flags the secret, and merge is blocked. Nothing unsafe reaches the registry.
+The pipeline is designed around what it must **refuse to ship**:
+
+1. **Baseline** — `main` is green; the image is signed and its SBOM attested.
+2. **Regression** — a change adds a dependency with a known CVE, or hardcodes a credential
+   in the source.
+3. **The gate holds** — the pipeline goes **red**: `trivy` flags the CVE / `gitleaks` flags
+   the secret, and the merge is blocked. Nothing unsafe reaches the registry.
 
 ---
 
@@ -94,7 +97,8 @@ See [ADR-002](docs/adr/ADR-002-single-host-no-k8s-deploy.md).
 - [ ] **Phase 2 — Policy-as-code:** conftest/OPA policies on the SBOM (banned pkgs, licenses)
 - [ ] **Phase 3 — Provenance:** keyless cosign sign + SBOM/provenance attestation → GHCR
 - [ ] **Phase 4 — Deploy:** single hardened host, `cosign verify` before `docker compose up`
-- [ ] **Phase 5 — Demo:** the "vulnerable PR" scenario, documented with screenshots
+- [ ] **Phase 5 — Attack simulation:** an automated "vulnerable PR" check proving the gate
+  blocks a known-CVE dependency and a hardcoded secret
 - [ ] **Stretch:** SLSA build-level provenance (slsa-github-generator) · admission-time
   verification (policy-controller) · dependency review action · Renovate auto-PRs
 

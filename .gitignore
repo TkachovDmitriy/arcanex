@@ -4,3 +4,4 @@ sbom.*.json
 *.sarif
 .DS_Store
 dist/
+docs/PLAN.md
